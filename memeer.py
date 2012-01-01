@@ -1,17 +1,28 @@
-# from gevent.pywsgi import WSGIServer
-from paver.path import path
+import gevent.monkey
+gevent.monkey.patch_all()
+
+from gserver.routes import Routes
+from gserver.request import parse_vals
+from gserver.wsgi import WSGIServer
+
 from pprint import pprint
+
+from paver.path import path
 from fuzzydict import FuzzyDict
 from copy import copy
 
+## for image stuff
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
-# from pil import ImageOps
+
+routes = Routes()
+route = routes.route
+route_json = routes.route_json
 
 MEME_MAP = FuzzyDict()
 IMPACT = path("Impact.ttf")
-FONT = ImageFont.load_default()
+IMPACT_MAP = {k: v for k, v in [(fontsize, ImageFont.truetype(IMPACT, fontsize)) for fontsize in xrange(1, 400)]}
 
 
 def populate_map():
@@ -27,41 +38,35 @@ def populate_map():
 
 def size_text(txt, size, img_fraction=1):
     fontsize = 1  # starting font size
-    font = ImageFont.truetype(IMPACT, fontsize)
-    while font.getsize(txt)[0] < img_fraction * size - 16:  # 16 is apple hig padding. i.e. looks purdy
+    font = IMPACT_MAP[fontsize]
+    while font.getsize(txt)[0] < img_fraction * size - 16:                      # 16 is apple hig padding. i.e. looks purdy
         # iterate until the text size is just larger than the criteria
         fontsize += 1
-        font = ImageFont.truetype(IMPACT, fontsize)
+        font = IMPACT_MAP[fontsize]
 
     # optionally de-increment to be sure it is less than criteria
     fontsize -= 1
-    font = ImageFont.truetype(IMPACT, fontsize)
+    font = IMPACT_MAP[fontsize]
     extra = size - font.getsize(txt)[0]
     padding = extra / 2
     return (font, fontsize, padding)
 
 
 def draw_text(x, y, txt, draw, font, fillcolor="white", shadowcolor="black"):
-    # xx = x
     inc = 2
     xp = x + inc
     xm = x - inc
-    # yy = y
     yp = y + inc
     ym = y - inc
 
-    draw.text((xm, y), txt, font=font, fill=shadowcolor)
-    draw.text((xp, y), txt, font=font, fill=shadowcolor)
-    draw.text((x, ym), txt, font=font, fill=shadowcolor)
-    draw.text((x, yp), txt, font=font, fill=shadowcolor)
-
-    # thicker border
+    # put the text shadow on the image
     draw.text((xm, ym), txt, font=font, fill=shadowcolor)
     draw.text((xp, ym), txt, font=font, fill=shadowcolor)
     draw.text((xm, yp), txt, font=font, fill=shadowcolor)
     draw.text((xp, yp), txt, font=font, fill=shadowcolor)
 
-    draw.text((x, y), txt, font=font, fill=fillcolor)  # put the text on the image
+    # put the actual text on top of the shadow
+    draw.text((x, y), txt, font=font, fill=fillcolor)
 
 
 def meme_image(name, line_a, line_b):
@@ -71,31 +76,46 @@ def meme_image(name, line_a, line_b):
     image = copy(MEME_MAP[name]['image'])
     draw = ImageDraw.Draw(image)
 
-    x, y = 8, 16
-
     font, fontsize, padding = size_text(line_a, image.size[0], 1)
-    draw_text(padding, y, line_a, draw, font)
+    draw_text(padding, 8, line_a, draw, font)
 
     font, fontsize, padding = size_text(line_b, image.size[0], 1)
-    draw_text(padding, image.size[1] - y - fontsize, line_b, draw, font)
+    draw_text(padding, image.size[1] - 16 - fontsize, line_b, draw, font)
 
     return image
 
 
-def application(env, start_response):
-    if env['PATH_INFO'] == '/':
-        start_response('200 OK', [('Content-Type', 'text/html')])
-        return ["<b>hello world</b>"]
+def parse_meme(meme_string):
+    # minimum meme == "name/top/botom"
+    if meme_string.starts_with("meme") and len(meme_string) > 5:
+        divider = "/"
+        meme = meme_string.split(m)
+        if len(meme) != 3:
+            raise Exception("Not a recognized meme format")
+        else:
+            return meme
     else:
-        start_response('404 Not Found', [('Content-Type', 'text/html')])
-        return ['<h1>Not Found</h1>']
+        raise Exception("Not a recognized meme format")
+
+
+@route("^/example/$")
+def example(req):
+        return "hello"
+
+
+@route("^/memeer/(?P<name>[\w\s]+)/(?P<line_a>[\w\s]+)/(?P<line_b>[\w\s]+)[/]?$")
+def serve_meme(req, name, line_a, line_b):
+    pprint(req.env)
+    pprint(req.query_data)
+
+    meme_img = meme_image(name, line_a, line_b)
+    img.save(name + ".jpeg")
+    return ["A Meme is born!"]
+
 
 if __name__ == '__main__':
     populate_map()
-    name = 'xthey'
-    img = meme_image(name, "making a meme?", "all the things!")
-    img.save(name + ".jpeg")
-
-    # print 'Serving on 8088...'
-    # WSGIServer(('', 8088), application).serve_forever()
-    # wsgi.WSGIServer(('', 8088), application, spawn=None).serve_forever()
+    port = 8088
+    print 'Serving on %d...' % port
+    server = WSGIServer(('', port), routes)
+    server.serve_forever()
