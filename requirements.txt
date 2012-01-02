@@ -1,0 +1,7 @@
+Paver==1.0.5
+Pillow==1.7.5
+distribute==0.6.24
+gevent==0.13.6
+greenlet==0.3.2
+gserver==0.1.6
+wsgiref==0.1.2
