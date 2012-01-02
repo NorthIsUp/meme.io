@@ -5,4 +5,5 @@ gevent==0.13.6
 greenlet==0.3.2
 gserver==0.1.6
 gunicorn==0.13.4
+shove==0.3.3
 wsgiref==0.1.2
