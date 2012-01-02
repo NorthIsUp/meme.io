@@ -1,5 +1,6 @@
 import gevent.monkey
 gevent.monkey.patch_all()
+# from gevent import Greenlet
 
 # debug
 from pprint import pformat
@@ -33,7 +34,6 @@ class ImpactMap(dict):
         return self._max_size
 
 IMPACT = ImpactMap()
-#{k: v for k, v in [(fontsize, ImageFont.truetype(IMPACT, fontsize)) for fontsize in xrange(1, 400)]}
 
 
 def populate_map(meme_path="./memes"):
@@ -48,6 +48,7 @@ def populate_map(meme_path="./memes"):
 
 
 def size_text(txt, size, img_fraction=1):
+    #TODO adam: care about height?
     fontsize = 1  # starting font size
     font = IMPACT[fontsize]
     img_size = img_fraction * size - 16
@@ -59,13 +60,12 @@ def size_text(txt, size, img_fraction=1):
 
     # faster via binary search?
     while True:
-        breaker += 1
         mid = (lo + hi) // 2
 
         current = IMPACT[mid].getsize(txt)[0]
         next = IMPACT[mid + 1].getsize(txt)[0]
 
-        if current <= img_size and next > img_size:
+        if current <= img_size and next >= img_size:
             break
         elif current < img_size:
             lo = mid + 1
@@ -125,8 +125,13 @@ def meme_image(name, line_a, line_b, blank=False):
 
         font, fontsize, padding = size_text(line_a, image.size[0], 1)
         draw_text(padding, 8, line_a, draw, font)
+        # a = Greenlet.spawn(draw_text, padding, 8, line_a, draw, font)
 
         font, fontsize, padding = size_text(line_b, image.size[0], 1)
         draw_text(padding, image.size[1] - 16 - fontsize, line_b, draw, font)
+        # b = Greenlet.spawn(draw_text, padding, image.size[1] - 16 - fontsize, line_b, draw, font)
+
+        # a.join()
+        # b.join()
 
     return image, full_name

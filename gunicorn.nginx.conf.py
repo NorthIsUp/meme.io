@@ -12,9 +12,9 @@ workers = 2  # multiprocessing.cpu_count() * 2 + 1
 debug = True
 spew = False
 
-logfile = 'memeer.log'
+logfile = 'log/log'
 loglevel = 'debug'
-accesslog = '-'
+accesslog = 'log/access.log'
 
 
 ## for dynamic reloading

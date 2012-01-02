@@ -17,7 +17,12 @@ from gevent.queue import Queue
 ## utils
 from urllib import quote
 from paver.path import path
-import cStringIO
+
+try:
+    from cStringIO import StringIO
+except:
+    pass
+    #from StringIO import StringIO
 
 ## data
 from shove import Shove
@@ -109,30 +114,19 @@ def serve_meme_image(req, name, line_a, line_b, ext=None):
 
     meme_queue.put((better_name, line_a, line_b))
 
-    f = cStringIO.StringIO()
+    f = StringIO()
     meme_img.save(f, _IMG_TYPE)
+    length = f.tell()
     f.seek(0)
 
+    req.add_header('Content-Length', length)
     #output to browser
     return [f.read()]
 
 
 # @route("^/memeer/(?P<name>[\w\s_\-]+)[/]?", content_type=IMAGE.JPEG)
-def serve_blank_meme_image(req, name):
-    meme_img, better_name = libmeme.meme_image(name, "", "", blank=True)
-
-    if better_name != name:
-        new_url = "/memeer/{n}.{E}".format(n=better_name, E=_IMG_EXT)
-        LOG.info("redirecting to: ", new_url)
-        req.redirect(new_url)
-
-    f = cStringIO.StringIO()
-    meme_img.save(f, _IMG_TYPE)
-    f.seek(0)
-
-    #output to browser
-    return [f.read()]
-
+# def serve_blank_meme_image(req, name):
+#     pass
 
 ## Setup
 sogq = Greenlet.spawn(process_meme_queue)
