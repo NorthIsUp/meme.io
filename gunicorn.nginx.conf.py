@@ -4,15 +4,15 @@ import signal
 import sys
 import gevent.monkey
 gevent.monkey.patch_all()
-import multiprocessing
+#import multiprocessing
 
 bind = "unix:/tmp/gunicorn.sock"
-workers = multiprocessing.cpu_count() * 2 + 1
+workers = 2  # multiprocessing.cpu_count() * 2 + 1
 
 debug = True
 spew = False
 
-logfile = '/var/log/memeer.log'
+logfile = 'memeer.log'
 loglevel = 'debug'
 accesslog = '-'
 
