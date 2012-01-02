@@ -1,9 +1,6 @@
 import gevent.monkey
 gevent.monkey.patch_all()
 
-## make wsgi easier
-from gserver.routes import Routes
-
 # debug
 from pprint import pprint
 
@@ -16,10 +13,6 @@ from copy import copy
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
-
-routes = Routes()
-route = routes.route
-route_json = routes.route_json
 
 MEME_MAP = FuzzyDict()
 IMPACT = path("Impact.ttf")
@@ -70,11 +63,19 @@ def draw_text(x, y, txt, draw, font, fillcolor="white", shadowcolor="black"):
     draw.text((x, y), txt, font=font, fill=fillcolor)
 
 
+def fuzzy_meme(lookfor):
+    matched, key, item, ratio = MEME_MAP._search(lookfor)
+    if not matched and not item:
+        raise KeyError("'%s'. closest match: '%s' with ratio %.3f" % (str(lookfor), str(key), ratio))
+    return item, key
+
+
 def meme_image(name, line_a, line_b):
     line_a = line_a.upper()
     line_b = line_b.upper()
 
-    image = copy(MEME_MAP[name]['image'])
+    item, full_name = fuzzy_meme(name)
+    image = copy(item['image'])
     draw = ImageDraw.Draw(image)
 
     font, fontsize, padding = size_text(line_a, image.size[0], 1)
@@ -83,4 +84,4 @@ def meme_image(name, line_a, line_b):
     font, fontsize, padding = size_text(line_b, image.size[0], 1)
     draw_text(padding, image.size[1] - 16 - fontsize, line_b, draw, font)
 
-    return image
+    return image, full_name

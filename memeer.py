@@ -1,6 +1,8 @@
 import gevent.monkey
 gevent.monkey.patch_all()
 
+from urllib import quote
+
 ## make wsgi easier
 from gserver.routes import Routes
 from gserver.wsgi import WSGIServer
@@ -10,7 +12,6 @@ from paver.path import path
 import cStringIO
 
 # debug
-from pprint import pprint
 import libmeme
 
 from content_types import IMAGE
@@ -25,12 +26,15 @@ def example(req):
         return "hello"
 
 
-@route("^/memeer/(?P<name>[\w\s]+)/(?P<line_a>[\w\s]+)/(?P<line_b>[\w\s]+)[/]?$", content_type=IMAGE.JPEG)
+@route("^/memeer/(?P<name>[\w\s_\-]+)/(?P<line_a>[\w\s_\-]+)/(?P<line_b>[\w\s_\-]+)[/]?$", content_type=IMAGE.JPEG)
 def serve_meme(req, name, line_a, line_b):
-    pprint(req.env)
-    pprint(req.query_data)
+    meme_img, better_name = libmeme.meme_image(name, line_a, line_b)
 
-    meme_img = libmeme.meme_image(name, line_a, line_b)
+    if better_name != name:
+        line_a_format = quote(line_a)
+        line_b_format = quote(line_b)
+        new_url = "/memeer/{0}/{1}/{2}/".format(better_name, line_a_format, line_b_format)
+        req.redirect(new_url)
 
     f = cStringIO.StringIO()
     meme_img.save(f, "JPEG")
