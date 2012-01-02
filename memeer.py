@@ -37,8 +37,9 @@ meme_queue = Queue()
 
 
 _SEP = "@@"
-_IMG_EXT = "jpg"
-_IMG_TYPE = "JPEG"
+_IMG_EXT = "png"
+_IMG_DEXT = ".png"
+_IMG_TYPE = "PNG"
 
 
 ## worker in a grenlet
@@ -90,12 +91,12 @@ def serve_meme_thread(req, name, line_a, line_b):
 def serve_meme_image(req, name, line_a, line_b, ext=None):
     print name, line_a, line_b, ext
 
-    if line_b.endswith(".jpg"):
+    if line_b.endswith(_IMG_DEXT):
         line_b = line_b[:-4]
-    elif line_b.endswith(".jpeg"):
-        line_b = line_b[:-5]
     else:
-        req.redirect(req.env['REQUEST_URI'] + _IMG_EXT)
+        from pprint import pprint
+        pprint(req.__dict__)
+        req.redirect("{0}.{1}".format(req.env['RAW_URI'], _IMG_EXT))
 
     meme_img, better_name = libmeme.meme_image(name, line_a, line_b)
 
@@ -109,7 +110,7 @@ def serve_meme_image(req, name, line_a, line_b, ext=None):
     meme_queue.put((better_name, line_a, line_b))
 
     f = cStringIO.StringIO()
-    meme_img.save(f, "JPEG")
+    meme_img.save(f, _IMG_TYPE)
     f.seek(0)
 
     #output to browser
