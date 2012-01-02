@@ -87,8 +87,12 @@ def serve_meme_thread(req, name, line_a, line_b):
 
 
 @route(memeer_routes.serve_meme_image, content_type=IMAGE.JPEG)
-def serve_meme_image(req, name, line_a, line_b):
-    if line_b.endswith(".jpeg"):
+def serve_meme_image(req, name, line_a, line_b, ext=None):
+    print name, line_a, line_b, ext
+
+    if line_b.endswith(".jpg"):
+        line_b = line_b[:-4]
+    elif line_b.endswith(".jpeg"):
         line_b = line_b[:-5]
     else:
         req.redirect(req.env['REQUEST_URI'] + _IMG_EXT)
