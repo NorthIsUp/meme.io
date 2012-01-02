@@ -73,8 +73,8 @@ def serve_meme_thread(req, name, line_a, line_b):
 
     final_name = better_name if better_name != name else name
 
-    meme_base = "/{0}/{1}//{2}/".format(final_name, line_a_format, line_b_format)
-    meme_link = "/memeer" + meme_base
+    meme_base = "/{0}/{1}//{2}".format(final_name, line_a_format, line_b_format)
+    meme_link = "/memeer" + meme_base + ".jpeg"
     disqus_link = "/memeer/disqus" + meme_base
 
     if better_name != name:
@@ -87,13 +87,17 @@ def serve_meme_thread(req, name, line_a, line_b):
 
 @route(memeer_routes.serve_meme_image, content_type=IMAGE.JPEG)
 def serve_meme_image(req, name, line_a, line_b):
-    print name, line_a, line_b
+    if line_b.endswith(".jpeg"):
+        line_b = line_b[:-5]
+    else:
+        req.redirect(req.env['REQUEST_URI'] + ".jpeg")
+
     meme_img, better_name = libmeme.meme_image(name, line_a, line_b)
 
     if better_name != name:
         line_a_format = quote(line_a)
         line_b_format = quote(line_b)
-        new_url = "/memeer/{0}/{1}//{2}/".format(better_name, line_a_format, line_b_format)
+        new_url = "/memeer/{0}/{1}//{2}.jpeg".format(better_name, line_a_format, line_b_format)
         LOG.info("redirecting to: ", new_url)
         req.redirect(new_url)
 
@@ -112,7 +116,7 @@ def serve_blank_meme_image(req, name):
     meme_img, better_name = libmeme.meme_image(name, "", "", blank=True)
 
     if better_name != name:
-        new_url = "/memeer/{0}/".format(better_name)
+        new_url = "/memeer/{0}.jpeg".format(better_name)
         LOG.info("redirecting to: ", new_url)
         req.redirect(new_url)
 
