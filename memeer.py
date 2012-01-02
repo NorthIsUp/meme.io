@@ -30,16 +30,13 @@ from shove import Shove
 from logging import getLogger
 LOG = getLogger(__name__)
 
-
 store_name = Shove("file://%s/db.names" % path(__file__).dirname().abspath())
-
 
 routes = Routes()
 route = routes.route
 route_json = routes.route_json
 
 meme_queue = Queue()
-
 
 _SEP = "@@"
 _IMG_EXT = "png"
@@ -48,12 +45,11 @@ _IMG_TYPE = "PNG"
 
 
 ## worker in a grenlet
-def process_meme_queue(q=meme_queue):
-    while True:
-        name, line_a, line_b = q.get(block=True)
-        if name not in store_name:
-            store_name[name] = {}
-        store_name[name][(line_a, line_b)] = None
+def process_new_meme(q=meme_queue):
+    name, line_a, line_b = q.get()
+    if name not in store_name:
+        store_name[name] = {}
+    store_name[name][(line_a, line_b)] = None
 
 
 @route("^/memeer[/]?$")
@@ -65,7 +61,7 @@ def front_page(req):
         for line_a, line_b in history:
             line_a_format = quote(line_a)
             line_b_format = quote(line_b)
-            url = "/memeer/disqus/{1}{0}{2}{0}{3}/".format(_SEP, meme_name, line_a_format, line_b_format)
+            url = "/memeer/disqus/{1}{0}{2}{0}{3}".format(_SEP, meme_name, line_a_format, line_b_format)
             ret.append("<li><a href='{url}'>{line_a} \\\\ {line_b}</a></li>".format(url=url, line_a=line_a, line_b=line_b))
         ret.append("</ul>")
     return ret
@@ -113,6 +109,7 @@ def serve_meme_image(req, name, line_a, line_b, ext=None):
         req.redirect(new_url)
 
     meme_queue.put((better_name, line_a, line_b))
+    Greenlet.spawn(process_new_meme)
 
     f = StringIO()
     meme_img.save(f, _IMG_TYPE)
@@ -129,8 +126,6 @@ def serve_meme_image(req, name, line_a, line_b, ext=None):
 #     pass
 
 ## Setup
-sogq = Greenlet.spawn(process_meme_queue)
-
 meme_path = path("memes").abspath()
 libmeme.populate_map(meme_path)
 

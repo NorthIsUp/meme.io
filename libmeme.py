@@ -4,7 +4,7 @@ gevent.monkey.patch_all()
 
 # debug
 from pprint import pformat
-from logging import getLogger
+
 # utils
 from paver.path import path
 from fuzzydict import FuzzyDict
@@ -15,6 +15,7 @@ from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 
+from logging import getLogger
 LOG = getLogger(__name__)
 
 MEME_MAP = FuzzyDict()

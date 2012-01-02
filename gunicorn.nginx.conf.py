@@ -13,6 +13,7 @@ debug = True
 spew = False
 
 logfile = 'log/log'
+errorlog = 'log/err'
 loglevel = 'debug'
 accesslog = 'log/access.log'
 
