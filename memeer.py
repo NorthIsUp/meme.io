@@ -22,10 +22,12 @@ import cStringIO
 ## data
 from shove import Shove
 
-store = Shove("file://%s/db" % path(__file__).dirname().abspath())
-
 from logging import getLogger
 LOG = getLogger(__name__)
+
+
+store_name = Shove("file://%s/db.names" % path(__file__).dirname().abspath())
+
 
 routes = Routes()
 route = routes.route
@@ -33,33 +35,32 @@ route_json = routes.route_json
 
 meme_queue = Queue()
 
-meme_path = path("memes").abspath()
-libmeme.populate_map(meme_path)
+
+_SEP = "@@"
+_IMG_EXT = "jpg"
+_IMG_TYPE = "JPEG"
 
 
 ## worker in a grenlet
 def process_meme_queue(q=meme_queue):
     while True:
         name, line_a, line_b = q.get(block=True)
-        try:
-            if (line_a, line_b) not in store[name]:
-                store[name][(line_a, line_b)] = None
-        except:
-            store[name] = {}
-            store[name][(line_a, line_b)] = None
+        if name not in store_name:
+            store_name[name] = {}
+        store_name[name][(line_a, line_b)] = None
 
 
 @route("^/memeer[/]?$")
 def front_page(req):
     ret = []
     #TODO adam: store this in a data structure that can be printed via simple traversal
-    for meme_name, history in store.iteritems():
+    for meme_name, history in store_name.iteritems():
         ret.append("<li>" + meme_name + "</li><ul>")
         for line_a, line_b in history:
             line_a_format = quote(line_a)
             line_b_format = quote(line_b)
-            url = "/memeer/disqus/{0}/{1}//{2}/".format(meme_name, line_a_format, line_b_format)
-            ret.append("<li><a href='{url}'>{line_a} // {line_b}</a></li>".format(url=url, line_a=line_a, line_b=line_b))
+            url = "/memeer/disqus/{1}{0}{2}{0}{3}/".format(_SEP, meme_name, line_a_format, line_b_format)
+            ret.append("<li><a href='{url}'>{line_a} \\\\ {line_b}</a></li>".format(url=url, line_a=line_a, line_b=line_b))
         ret.append("</ul>")
     return ret
 
@@ -73,8 +74,8 @@ def serve_meme_thread(req, name, line_a, line_b):
 
     final_name = better_name if better_name != name else name
 
-    meme_base = "/{0}/{1}//{2}".format(final_name, line_a_format, line_b_format)
-    meme_link = "/memeer" + meme_base + ".jpeg"
+    meme_base = "/{n}{S}{a}{S}{b}".format(S=_SEP, n=final_name, a=line_a_format, b=line_b_format)
+    meme_link = "/memeer" + meme_base + _IMG_EXT
     disqus_link = "/memeer/disqus" + meme_base
 
     if better_name != name:
@@ -90,14 +91,14 @@ def serve_meme_image(req, name, line_a, line_b):
     if line_b.endswith(".jpeg"):
         line_b = line_b[:-5]
     else:
-        req.redirect(req.env['REQUEST_URI'] + ".jpeg")
+        req.redirect(req.env['REQUEST_URI'] + _IMG_EXT)
 
     meme_img, better_name = libmeme.meme_image(name, line_a, line_b)
 
     if better_name != name:
         line_a_format = quote(line_a)
         line_b_format = quote(line_b)
-        new_url = "/memeer/{0}/{1}//{2}.jpeg".format(better_name, line_a_format, line_b_format)
+        new_url = "/memeer/{n}{S}{a}{S}{b}.{E}".format(S=_SEP, E=_IMG_EXT, n=better_name, a=line_a_format, b=line_b_format)
         LOG.info("redirecting to: ", new_url)
         req.redirect(new_url)
 
@@ -116,19 +117,24 @@ def serve_blank_meme_image(req, name):
     meme_img, better_name = libmeme.meme_image(name, "", "", blank=True)
 
     if better_name != name:
-        new_url = "/memeer/{0}.jpeg".format(better_name)
+        new_url = "/memeer/{n}.{E}".format(n=better_name, E=_IMG_EXT)
         LOG.info("redirecting to: ", new_url)
         req.redirect(new_url)
 
     f = cStringIO.StringIO()
-    meme_img.save(f, "JPEG")
+    meme_img.save(f, _IMG_TYPE)
     f.seek(0)
 
     #output to browser
     return [f.read()]
 
 
+## Setup
 sogq = Greenlet.spawn(process_meme_queue)
+
+meme_path = path("memes").abspath()
+libmeme.populate_map(meme_path)
+
 
 if __name__ == '__main__':
     from gserver.wsgi import WSGIServer
