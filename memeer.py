@@ -8,7 +8,8 @@ from  content_types_mixin import IMAGE
 
 ## make wsgi easier
 from gserver.routes import Routes
-from gserver.wsgi import WSGIServer
+from gserver.wsgi import get_handler
+from gserver.content_types import TEXT
 
 ## utils
 from urllib import quote
@@ -23,8 +24,11 @@ routes = Routes()
 route = routes.route
 route_json = routes.route_json
 
+meme_path = path("memes").abspath()
+libmeme.populate_map(meme_path)
 
-@route("^/memeer/disqus/(?P<name>[\w\s_\-]+)/(?P<line_a>[\w\s_\-]+)/(?P<line_b>[\w\s_\-]+)[/]?$")
+
+@route("^/memeer/disqus/(?P<name>[\w\s_\-]+)/(?P<line_a>[\w\s_\-]+)/(?P<line_b>[\w\s_\-]+)[/]?$", content_type=TEXT.HTML)
 def serve_meme_thread(req, name, line_a, line_b):
     _meme_img, better_name = libmeme.meme_image(name, line_a, line_b)
 
@@ -65,9 +69,11 @@ def serve_meme(req, name, line_a, line_b):
 
 
 if __name__ == '__main__':
-    meme_path = path("memes").abspath()
-    libmeme.populate_map(meme_path)
+    from gserver.wsgi import WSGIServer
+
     port = 8088
     LOG.info('Serving on %d...' % port)
     server = WSGIServer(('', port), routes)
     server.serve_forever()
+else:
+    application = get_handler(routes)
