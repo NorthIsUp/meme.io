@@ -5,7 +5,7 @@ import sys
 import gevent.monkey
 gevent.monkey.patch_all()
 
-bind = "127.0.0.1:8088"
+bind = "0.0.0.0:8088"
 workers = 1  # multiprocessing.cpu_count() * 2 + 1
 
 debug = True

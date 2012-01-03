@@ -111,11 +111,11 @@ def fuzzy_meme(lookfor):
     matched, key, item, ratio = MEME_MAP._search(lookfor)
     if not matched and not item:
         raise KeyError("'%s'. closest match: '%s' with ratio %.3f" % (str(lookfor), str(key), ratio))
-    return item, key
+    return key
 
 
-def meme_image(name, line_a, line_b, blank=False):
-    item, full_name = fuzzy_meme(name)
+def meme_image(full_name, line_a, line_b, blank=False):
+    item = MEME_MAP[full_name]
     image = copy(item['image'])
 
     if not blank:
@@ -135,4 +135,4 @@ def meme_image(name, line_a, line_b, blank=False):
         # a.join()
         # b.join()
 
-    return image, full_name
+    return image

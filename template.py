@@ -9,8 +9,8 @@ THREAD = """
         <script type="text/javascript">
             /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
             var disqus_shortname = 'northisup'; // required: replace example with your forum shortname
-            var disqus_identifier= '{meme_name}/{line_a}/{line_b}';
-            var disqus_developer = 1;
+            var disqus_identifier= '{meme_name}@@{line_a}@@{line_b}';
+            //var disqus_developer = 1;
 
             /* * * DON'T EDIT BELOW THIS LINE * * */
             (function() {{

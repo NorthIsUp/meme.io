@@ -1,6 +1,5 @@
-import gevent.monkey
-from gevent import Greenlet
-gevent.monkey.patch_all()
+# import gevent.monkey
+# gevent.monkey.patch_all()
 
 ## application
 import libmeme
@@ -9,10 +8,14 @@ from  content_types_mixin import IMAGE
 import memeer_routes
 
 ## make wsgi easier
-from gserver.routes import Routes
-from gserver.wsgi import get_handler
-from gserver.content_types import TEXT
-from gevent.queue import Queue
+from flask import Flask
+from flask import redirect
+from flask import make_response
+
+# from flask import request
+# from flask import abort
+# from flask import url_for
+
 
 ## utils
 from urllib import quote
@@ -28,32 +31,21 @@ except:
 from shove import Shove
 
 from logging import getLogger
+
+app = Flask(__name__)
 LOG = getLogger(__name__)
 
 store_name = Shove("file://%s/db.names" % path(__file__).dirname().abspath())
-
-routes = Routes()
-route = routes.route
-route_json = routes.route_json
-
-meme_queue = Queue()
 
 _SEP = "@@"
 _IMG_EXT = "png"
 _IMG_DEXT = ".png"
 _IMG_TYPE = "PNG"
+_IMG_CONTENT_TYPE = IMAGE.PNG
 
 
-## worker in a grenlet
-def process_new_meme(q=meme_queue):
-    name, line_a, line_b = q.get()
-    if name not in store_name:
-        store_name[name] = {}
-    store_name[name][(line_a, line_b)] = None
-
-
-@route("^/memeer[/]?$")
-def front_page(req):
+@app.route("/memeer")
+def front_page():
     ret = []
     #TODO adam: store this in a data structure that can be printed via simple traversal
     for meme_name, history in store_name.iteritems():
@@ -64,12 +56,12 @@ def front_page(req):
             url = "/memeer/disqus/{1}{0}{2}{0}{3}".format(_SEP, meme_name, line_a_format, line_b_format)
             ret.append("<li><a href='{url}'>{line_a} \\\\ {line_b}</a></li>".format(url=url, line_a=line_a, line_b=line_b))
         ret.append("</ul>")
-    return ret
+    return "".join(ret)
 
 
-@route(memeer_routes.serve_meme_thread, content_type=TEXT.HTML)
-def serve_meme_thread(req, name, line_a, line_b):
-    _meme_img, better_name = libmeme.meme_image(name, line_a, line_b)
+@app.route(memeer_routes.serve_meme_thread)
+def serve_meme_thread(name, line_a, line_b):
+    better_name = libmeme.fuzzy_meme(name)
 
     line_a_format = quote(line_a)
     line_b_format = quote(line_b)
@@ -82,48 +74,40 @@ def serve_meme_thread(req, name, line_a, line_b):
 
     if better_name != name:
         LOG.info("redirecting to: ", disqus_link)
-        req.redirect(disqus_link)
+        return redirect(disqus_link)
 
     ret = (THREAD.format(meme_link=meme_link, meme_name=final_name, line_a=line_a, line_b=line_b))
     return ret
 
 
-@route(memeer_routes.serve_meme_image, content_type=IMAGE.JPEG)
-def serve_meme_image(req, name, line_a, line_b, ext=None):
-    print name, line_a, line_b, ext
+@app.route("/memeer/<name>@@<line_a>@@<line_b>.png")
+def serve_meme_image(name, line_a, line_b):
+    print name, line_a, line_b
+    better_name = libmeme.fuzzy_meme(name)
 
-    if line_b.endswith(_IMG_DEXT):
-        line_b = line_b[:-4]
-    else:
-        from pprint import pprint
-        pprint(req.__dict__)
-        req.redirect("{0}.{1}".format(req.env['RAW_URI'], _IMG_EXT))
-
-    meme_img, better_name = libmeme.meme_image(name, line_a, line_b)
-
+    # should you redirect?
     if better_name != name:
         line_a_format = quote(line_a)
         line_b_format = quote(line_b)
         new_url = "/memeer/{n}{S}{a}{S}{b}.{E}".format(S=_SEP, E=_IMG_EXT, n=better_name, a=line_a_format, b=line_b_format)
         LOG.info("redirecting to: ", new_url)
-        req.redirect(new_url)
+        return redirect(new_url)
 
-    meme_queue.put((better_name, line_a, line_b))
-    Greenlet.spawn(process_new_meme)
+    meme_img = libmeme.meme_image(better_name, line_a, line_b)
 
+    # put the image in a string buffer for output
     f = StringIO()
     meme_img.save(f, _IMG_TYPE)
     length = f.tell()
     f.seek(0)
 
-    req.add_header('Content-Length', length)
+    # make the response
+    resp = make_response(f.read(), 200)
+    resp.headers['Content-Length'] = length
+    resp.headers['Content-Type'] = _IMG_CONTENT_TYPE
     #output to browser
-    return [f.read()]
+    return resp
 
-
-# @route("^/memeer/(?P<name>[\w\s_\-]+)[/]?", content_type=IMAGE.JPEG)
-# def serve_blank_meme_image(req, name):
-#     pass
 
 ## Setup
 meme_path = path("memes").abspath()
@@ -131,10 +115,9 @@ libmeme.populate_map(meme_path)
 
 
 if __name__ == '__main__':
-    from gserver.wsgi import WSGIServer
-    port = 8088
-    LOG.info('Serving on %d...' % port)
-    server = WSGIServer(('', port), routes)
-    server.serve_forever()
+    # flask
+    app.debug = True
+    app.run(host="127.0.0.1")
 else:
-    application = get_handler(routes)
+    # gunicorn
+    application = app
