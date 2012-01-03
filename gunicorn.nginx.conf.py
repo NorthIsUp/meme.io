@@ -3,6 +3,8 @@ import os
 import signal
 import sys
 import gevent.monkey
+from paver import path
+
 gevent.monkey.patch_all()
 #import multiprocessing
 
@@ -12,10 +14,13 @@ workers = 2  # multiprocessing.cpu_count() * 2 + 1
 debug = True
 spew = False
 
-logfile = 'log/log'
-errorlog = 'log/err'
+p = path(__file__).dirname().abspath()
+
 loglevel = 'debug'
-accesslog = 'log/access.log'
+
+logfile = p + '/log/log'
+errorlog = p + '/log/err'
+accesslog = p + '/log/access'
 
 
 ## for dynamic reloading
