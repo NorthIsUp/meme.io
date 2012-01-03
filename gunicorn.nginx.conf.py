@@ -3,7 +3,7 @@ import os
 import signal
 import sys
 import gevent.monkey
-from paver import path
+from paver.path import path
 
 gevent.monkey.patch_all()
 #import multiprocessing
