@@ -1,6 +1,12 @@
+## gevent
 import gevent.monkey
 gevent.monkey.patch_all()
 from gevent.queue import Queue
+
+## make wsgi easier
+from flask import Flask
+from flask import redirect
+from flask import make_response
 
 ## application
 import libmeme
@@ -12,11 +18,6 @@ from urllib import quote
 from paver.path import path
 from shove import Shove
 from logging import getLogger
-
-## make wsgi easier
-from flask import Flask
-from flask import redirect
-from flask import make_response
 
 ## Setup
 meme_path = path("memes").abspath()
@@ -109,11 +110,10 @@ def serve_meme_thread(name, line_a, line_b):
     ret = (THREAD.format(meme_link=meme_link, meme_name=final_name, line_a=line_a, line_b=line_b))
     return ret
 
-import greplin.scales.flaskhandler as statserver
-statserver.serveInBackground(8765, serverName='something-server-42')
-
 if __name__ == '__main__':
-    # flask
+    import greplin.scales.flaskhandler as statserver
+    statserver.serveInBackground(8765, serverName='memeer-stats')
+
     app.debug = True
     app.run(host="127.0.0.1")
 else:
