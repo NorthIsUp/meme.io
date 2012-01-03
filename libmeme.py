@@ -140,7 +140,7 @@ def meme_image(full_name, line_a, line_b, blank=False):
             font, fontsize, padding = size_text(line_b, image.size[0], 1)
             b = Greenlet.spawn(draw_text, padding, image.size[1] - 16 - fontsize, line_b, draw, font)
 
-        gevent.joinall((a, b) if a and b else a if a else b if b else ())       # stupid speed optimization
+        gevent.joinall((a, b) if line_a and line_b else a if line_a else b if line_b else ())       # stupid speed optimization
 
         return image
 

@@ -40,6 +40,12 @@ def build_image_response(f, length):
 def front_page():
     ret = []
     #TODO adam: store this in a data structure that can be printed via simple traversal
+    ret.append("<h1>available memes</h1>")
+    ret.append("<ul>")
+    for meme_name, v in libmeme.MEME_MAP.iteritems():
+        ret.append("<li>" + meme_name + "</li>")
+    ret.append("</ul>")
+    ret.append("<ul>")
     for meme_name, history in store_name.iteritems():
         ret.append("<li>" + meme_name + "</li><ul>")
         for line_a, line_b in history:
