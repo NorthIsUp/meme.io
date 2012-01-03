@@ -6,10 +6,10 @@ import gevent.monkey
 from paver.path import path
 
 gevent.monkey.patch_all()
-#import multiprocessing
+import multiprocessing
 
 bind = "unix:/tmp/gunicorn.sock"
-workers = 2  # multiprocessing.cpu_count() * 2 + 1
+workers = multiprocessing.cpu_count() * 2 + 1
 
 debug = True
 spew = False
