@@ -70,6 +70,7 @@ def serve_meme_thread(name, line_a, line_b):
 
     meme_base = "/{n}{S}{a}{S}{b}".format(S=_SEP, n=final_name, a=line_a_format, b=line_b_format)
     meme_link = "/memeer" + meme_base + _IMG_DEXT
+    print meme_link
     disqus_link = "/memeer/disqus" + meme_base
 
     if better_name != name:
@@ -104,7 +105,7 @@ def serve_meme_image(name, line_a, line_b):
     # make the response
     resp = make_response(f.read(), 200)
     resp.headers['Content-Length'] = length
-    resp.headers['Content-Type'] = _IMG_CONTENT_TYPE
+    resp.headers[_IMG_CONTENT_TYPE[0]] = _IMG_CONTENT_TYPE[1]
     #output to browser
     return resp
 
