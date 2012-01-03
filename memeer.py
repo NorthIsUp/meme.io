@@ -104,14 +104,13 @@ def serve_meme_thread(name, line_a, line_b):
 
     final_name = better_name if better_name != name else name
 
-    meme_base = "/{n}{S}{a}{S}{b}".format(S=_SEP, n=final_name, a=line_a_format, b=line_b_format)
+    meme_base = "/memeer/{n}{S}{a}{S}{b}".format(S=_SEP, n=final_name, a=line_a_format, b=line_b_format)
 
     if better_name != name:
-        disqus_link = "/memeer/disqus" + meme_base
-        LOG.info("redirecting to: ", disqus_link)
-        return redirect(disqus_link)
+        LOG.info("redirecting to: ", meme_base)
+        return redirect(meme_base)
 
-    meme_link = "/memeer" + meme_base + _IMG_DEXT
+    meme_link = meme_base + _IMG_DEXT
 
     ret = (THREAD.format(meme_link=meme_link, meme_name=final_name, line_a=line_a, line_b=line_b))
     return ret
