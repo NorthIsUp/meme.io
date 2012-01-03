@@ -7,5 +7,6 @@ distribute==0.6.24
 gevent==0.13.6
 greenlet==0.3.2
 gunicorn==0.13.4
+scales==0.1
 shove==0.3.3
 wsgiref==0.1.2
