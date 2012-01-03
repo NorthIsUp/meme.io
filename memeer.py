@@ -77,7 +77,7 @@ def serve_meme_thread(req, name, line_a, line_b):
     final_name = better_name if better_name != name else name
 
     meme_base = "/{n}{S}{a}{S}{b}".format(S=_SEP, n=final_name, a=line_a_format, b=line_b_format)
-    meme_link = "/memeer" + meme_base + _IMG_EXT
+    meme_link = "/memeer" + meme_base + _IMG_DEXT
     disqus_link = "/memeer/disqus" + meme_base
 
     if better_name != name:
