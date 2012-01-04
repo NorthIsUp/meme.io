@@ -21,8 +21,14 @@ from PIL import ImageDraw
 from logging import getLogger
 LOG = getLogger(__name__)
 
+IMG_TYPE_MAP = {
+    'PNG': 'PNG',
+    'JPG': 'JPEG',
+    'JPEG': 'JPEG',
+    'GIF': 'GIF',
+}
+
 MEME_MAP = FuzzyDict()
-IMPACT_FONT = path("Impact.ttf")
 
 STATS = scales.collection('/libmeme',
     scales.Stat('currentTime', time.time),
@@ -32,11 +38,25 @@ STATS = scales.collection('/libmeme',
     )
 
 
-class ImpactMap(dict):
+class FontMap(dict):
     _max_size = 1
 
+    def __init__(self, p=None):
+        super(FontMap, self).__init__()
+        self.ttf = path(p) if p else None
+
+    def set_ttf_path(self, p):
+        self.ttf = path(p)
+        self.clear()
+
     def __missing__(self, key):
-        self[key] = ImageFont.truetype(IMPACT_FONT, key)
+        if self.ttf:
+            f = ImageFont.truetype(self.ttf, key)
+        else:
+            raise Exception("Font not yet set")
+
+        self[key] = f
+
         if key > self._max_size:
             self._max_size = key
         return self[key]
@@ -44,10 +64,10 @@ class ImpactMap(dict):
     def max_size(self):
         return self._max_size
 
-IMPACT = ImpactMap()
+IMPACT = FontMap()
 
 
-def populate_map(meme_path="./memes"):
+def populate_map(meme_path):
     memes = path(meme_path)
     for f in memes.files('*.jpeg'):
         name = f.basename()[:-5]
@@ -145,10 +165,11 @@ def meme_image(full_name, line_a, line_b, blank=False):
         return image
 
 
-def bufferize_image(meme_img, _IMG_TYPE):
-        # put the image in a string buffer for output
+def bufferize_image(meme_img, img_type):
+    img_type = IMG_TYPE_MAP[img_type.upper()]
+    # put the image in a string buffer for output
     f = StringIO()
-    meme_img.save(f, _IMG_TYPE)
+    meme_img.save(f, img_type.upper())
     length = f.tell()
     f.seek(0)
     return f, length
