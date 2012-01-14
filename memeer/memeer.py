@@ -46,7 +46,7 @@ IMG_DEXT = "jpeg"
 LOG = getLogger(__name__)
 Q = Queue()
 
-app = Flask(__name__, static_folder=__file_path + "/static")
+app = Flask(__name__, static_folder=__file_path + "/static", static_path="/memeer/static")
 app.url_map.converters['re'] = RegexConverter
 
 cache = SimpleCache()
