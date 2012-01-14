@@ -72,6 +72,7 @@ def populate_map(meme_path):
         name = f.basename()[:-5]
         MEME_MAP[name] = {
             'path': f,
+            #TODO: make this async
             'image': Image.open(f)
             }
     LOG.debug(pformat(MEME_MAP))
