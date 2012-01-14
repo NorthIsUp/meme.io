@@ -1,0 +1,38 @@
+/* @override 
+	http://localhost:5000/static/style.css */
+
+div.memelist {
+	width: 320px;
+	padding: 1em;
+	border: 1px solid #333;
+	float: left;
+}
+	
+div.memeitem {
+	height: 50px;
+	width: 50px;
+	float: left;
+	padding: 1px;
+}
+
+img.memethumb {
+    display: block;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: auto;
+	margin-bottom: auto;
+}
+
+#memehover {
+	border: 1px solid #333;
+	float: left;
+	width: 600;
+	height: 600;
+}
+
+div.memerecent {
+	border: 1px solid #333;
+	height: 200;
+	width: 200;
+	float: left;
+}

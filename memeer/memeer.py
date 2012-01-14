@@ -8,36 +8,48 @@ from flask import Flask
 from flask import redirect
 from flask import make_response
 from flask import render_template
+from flask import request
 
-# from helpers import view, render_html
+from werkzeug.contrib.cache import SimpleCache
 
 ## application
 from converters import RegexConverter
 from lib import libmeme
 from template import THREAD
 from const import IMG_CONTENT_TYPES
+
+## stats
+from greplin import scales
+from greplin.scales.meter import MeterStat
+
 # from helpers import view, render_html
 
 ## utils
 from urllib import quote
 from paver.path import path
-from shove import Shove
 from logging import getLogger
 
 ## TODO: Refactor this into config
 __file_path = path(__file__).dirname().abspath()
-meme_path = __file_path + "/memes"
-font_path = __file_path + "/_static/Impact.ttf"
-libmeme.populate_map(meme_path)
-libmeme.IMPACT.set_ttf_path(font_path)
+libmeme.populate_map(__file_path + "/memes")
+libmeme.IMPACT.set_ttf_path(__file_path + "/static/Impact.ttf")
+
 IMG_DEXT = ".png"
 
 LOG = getLogger(__name__)
 Q = Queue()
-store_name = Shove("file://%s/db.names" % path(__file__).dirname().abspath())
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=__file_path + "/static")
 app.url_map.converters['re'] = RegexConverter
+
+cache = SimpleCache()
+
+STATS = scales.collection('/web',
+    MeterStat('hits'),
+    scales.IntStat('requests'),
+    scales.PmfStat('latency'),
+    scales.IntDictStat('byPath'),
+    )
 
 
 def build_image_response(f, length, img_type):
@@ -60,18 +72,29 @@ def front_page():
 
 @app.route("/memeer/<name>.<re(r'(?i)(png|jp[e]?g|gif)'):ext>")
 def serve_meme_blank(name, ext):
-    better_name = libmeme.fuzzy_meme(name)
+    STATS.hits.mark()
+    with STATS.latency.time():
+        better_name = libmeme.fuzzy_meme(name)
 
-    # should you redirect?
-    if better_name != name:
-        new_url = "/memeer/{n}".format(n=better_name)
-        LOG.info("redirecting to: ", new_url)
-        return redirect(new_url)
+        # should you redirect?
+        if better_name != name:
+            new_url = "/memeer/{n}".format(n=better_name)
+            LOG.info("redirecting to: ", new_url)
+            return redirect(new_url)
 
-    meme_img = libmeme.meme_image(better_name, "", "")
-    f, length = libmeme.bufferize_image(meme_img, ext)
-    resp = build_image_response(f, length, ext)
+        size = request.args.get("size", "")
+        better_name_size = better_name + size
 
+        resp = cache.get(better_name_size)
+
+        if resp:
+            return resp
+
+        meme_img = libmeme.meme_image(better_name, "", "")
+        f, length = libmeme.bufferize_image(meme_img, ext, size)
+        resp = build_image_response(f, length, ext)
+
+        cache.set(better_name_size, resp, timeout=5 * 60)
     return resp
 
 
@@ -115,13 +138,3 @@ def serve_meme_thread(name, line_a, line_b):
 
     ret = (THREAD.format(meme_link=meme_link, meme_name=final_name, line_a=line_a, line_b=line_b))
     return ret
-
-if __name__ == '__main__':
-    import greplin.scales.flaskhandler as statserver
-    statserver.serveInBackground(8765, serverName='memeer-stats')
-
-    app.debug = True
-    app.run(host="127.0.0.1")
-else:
-    # gunicorn
-    application = app

@@ -1,6 +1,5 @@
 import gevent.monkey
 gevent.monkey.patch_all()
-from gevent import Greenlet
 
 # debug
 from pprint import pformat
@@ -121,15 +120,13 @@ def draw_text(x, y, txt, draw, font, fillcolor="white", shadowcolor="black"):
     ym = y - inc
 
     # put the text shadow on the image
-    a = Greenlet.spawn(draw.text, (xm, ym), txt, font=font, fill=shadowcolor)
-    b = Greenlet.spawn(draw.text, (xp, ym), txt, font=font, fill=shadowcolor)
-    c = Greenlet.spawn(draw.text, (xm, yp), txt, font=font, fill=shadowcolor)
-    d = Greenlet.spawn(draw.text, (xp, yp), txt, font=font, fill=shadowcolor)
+    draw.text((xm, ym), txt, font=font, fill=shadowcolor)
+    draw.text((xp, ym), txt, font=font, fill=shadowcolor)
+    draw.text((xm, yp), txt, font=font, fill=shadowcolor)
+    draw.text((xp, yp), txt, font=font, fill=shadowcolor)
 
     # put the actual text on top of the shadow
-    e = Greenlet.spawn(draw.text, (x, y), txt, font=font, fill=fillcolor)
-
-    gevent.joinall((a, b, c, d, e))
+    draw.text((x, y), txt, font=font, fill=fillcolor)
 
 
 def fuzzy_meme(lookfor):
@@ -149,27 +146,25 @@ def meme_image(full_name, line_a, line_b, blank=False):
 
         draw = ImageDraw.Draw(image)
 
-        a = None
-        b = None
-
         if line_a:
             font, fontsize, padding = size_text(line_a, image.size[0], 1)
-            a = Greenlet.spawn(draw_text, padding, 8, line_a, draw, font)
+            draw_text(padding, 8, line_a, draw, font)
 
         if line_b:
             font, fontsize, padding = size_text(line_b, image.size[0], 1)
-            b = Greenlet.spawn(draw_text, padding, image.size[1] - 16 - fontsize, line_b, draw, font)
-
-        gevent.joinall((a, b) if line_a and line_b else a if line_a else b if line_b else ())       # stupid speed optimization
+            draw_text(padding, image.size[1] - 16 - fontsize, line_b, draw, font)
 
         return image
 
 
-def bufferize_image(meme_img, img_type):
+def bufferize_image(meme_img, img_type, size=None):
     img_type = IMG_TYPE_MAP[img_type.upper()]
     # put the image in a string buffer for output
     f = StringIO()
-    meme_img.save(f, img_type.upper())
+    if size:
+        x, y = size.split("x")
+        meme_img.thumbnail((int(x), int(y)), Image.ANTIALIAS)
+    meme_img.save(f, img_type.upper(), optimize=1)
     length = f.tell()
     f.seek(0)
     return f, length

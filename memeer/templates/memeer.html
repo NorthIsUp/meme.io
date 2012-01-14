@@ -1,6 +1,32 @@
-<title>{% block title %}{% endblock %}</title>
-<ul>
-{% for meme_name, v in meme_map|dictsort %}
-  <li><a href="/memeer/{{ meme_name }}.png">{{ meme_name }}</a></li>
-{% endfor %}
-</ul>
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css" />
+
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript"> 
+
+        function changeMemeHover(whichImage){
+            $("#memehoverimg").attr("src", whichImage);
+        }
+
+    </script>
+
+</head>
+<body>
+    <div class="memelist">
+    {% for meme_name, v in meme_map|dictsort %}
+      <div class="memeitem">
+        <a href="/memeer/{{ meme_name }}.jpeg"><img class="memethumb" src="/memeer/{{ meme_name }}.jpeg?size=50x50" alt="{{ meme_name }}" onMouseOver='javascript:changeMemeHover("/memeer/{{ meme_name }}.jpeg")'/></a>
+      </div>
+    {% endfor %}
+    </div class="memelist">
+    <div id="memehover">
+        <img id="memehoverimg" src="/memeer/xthey/found a meme generator/make all the memes!.jpeg"/>
+        <form>
+            Top line: <input type="text" name="line_a" /><br />
+            Botom line: <input type="text" name="line_b" />
+            
+        </form>
+    </div>
+    <div class="memerecent"></div>
+</div>

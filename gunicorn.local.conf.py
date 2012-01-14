@@ -4,9 +4,10 @@ import signal
 import sys
 import gevent.monkey
 gevent.monkey.patch_all()
+import multiprocessing
 
 bind = "0.0.0.0:5000"
-workers = 1  # multiprocessing.cpu_count() * 2 + 1
+workers = multiprocessing.cpu_count() * 2 + 1
 
 debug = True
 spew = False
