@@ -1,6 +1,6 @@
 <head>
     <title>{% block title %}{% endblock %}</title>
-    <link rel="stylesheet" type="text/css" href="/memeer/static/style.css" />
+    <link rel="stylesheet" type="text/css" href="{{SITE_ROOT}}/static/style.css" />
 
     <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
     <script type="text/javascript"> 
@@ -16,12 +16,12 @@
     <div class="memelist">
     {% for meme_name, v in meme_map|dictsort %}
       <div class="memeitem">
-        <a href="/memeer/{{ meme_name }}.jpeg"><img class="memethumb" src="/memeer/{{ meme_name }}.jpeg?size=50x50" alt="{{ meme_name }}" onMouseOver='javascript:changeMemeHover("/memeer/{{ meme_name }}.jpeg")'/></a>
+        <a href="{{SITE_ROOT}}/{{ meme_name }}.jpeg"><img class="memethumb" src="{{SITE_ROOT}}/{{ meme_name }}.jpeg?size=50x50" alt="{{ meme_name }}" onMouseOver='javascript:changeMemeHover("{{SITE_ROOT}}/{{ meme_name }}.jpeg")'/></a>
       </div>
     {% endfor %}
     </div class="memelist">
     <div id="memehover">
-        <img id="memehoverimg" src="/memeer/xthey/found a meme generator/make all the memes!.jpeg"/>
+        <img id="memehoverimg" src="{{SITE_ROOT}}/xthey/found a meme generator/make all the memes!.jpeg"/>
         <form>
             Top line: <input type="text" name="line_a" /><br />
             Botom line: <input type="text" name="line_b" />
