@@ -9,8 +9,8 @@ from paver.path import path
 from fuzzydict import FuzzyDict
 from copy import copy
 from cStringIO import StringIO
-from greplin import scales
-import time
+# from greplin import scales
+# import time
 
 ## for image stuff
 from PIL import Image
@@ -29,12 +29,12 @@ IMG_TYPE_MAP = {
 
 MEME_MAP = FuzzyDict()
 
-STATS = scales.collection('/libmeme',
-    scales.Stat('currentTime', time.time),
-    scales.PmfStat('size_text'),
-    scales.PmfStat('draw_text'),
-    scales.PmfStat('draw_text2'),
-    )
+# STATS = scales.collection('/libmeme',
+#     scales.Stat('currentTime', time.time),
+#     scales.PmfStat('size_text'),
+#     scales.PmfStat('draw_text'),
+#     scales.PmfStat('draw_text2'),
+    # )
 
 
 class FontMap(dict):
@@ -82,27 +82,27 @@ def size_text(txt, size, img_fraction=1):
     #TODO adam: care about height?
     img_size = img_fraction * size - 16
 
-    with STATS.size_text.time():
-        breaker = 0
-        lo = 0
-        hi = IMPACT._max_size
+    # with STATS.size_text.time():
+    breaker = 0
+    lo = 0
+    hi = IMPACT._max_size
 
-        # faster via binary search?
-        while True:
-            mid = (lo + hi) // 2
+    # faster via binary search?
+    while True:
+        mid = (lo + hi) // 2
 
-            current = IMPACT[mid].getsize(txt)[0]
-            next = IMPACT[mid + 1].getsize(txt)[0]
+        current = IMPACT[mid].getsize(txt)[0]
+        next = IMPACT[mid + 1].getsize(txt)[0]
 
-            if current <= img_size and next >= img_size:
-                break
-            elif current < img_size:
-                lo = mid + 1
-            else:
-                hi = mid - 1
+        if current <= img_size and next >= img_size:
+            break
+        elif current < img_size:
+            lo = mid + 1
+        else:
+            hi = mid - 1
 
-            if mid == hi:
-                hi = hi * 2
+        if mid == hi:
+            hi = hi * 2
     LOG.debug("time to find fontsize: %s", breaker)
 
     # optionally de-increment to be sure it is less than criteria
@@ -138,24 +138,24 @@ def fuzzy_meme(lookfor):
 
 
 def meme_image(full_name, line_a, line_b, blank=False):
-    with STATS.draw_text.time():
-        item = MEME_MAP[full_name]
-        image = copy(item['image'])
+    # with STATS.draw_text.time():
+    item = MEME_MAP[full_name]
+    image = copy(item['image'])
 
-        line_a = line_a.upper()
-        line_b = line_b.upper()
+    line_a = line_a.upper()
+    line_b = line_b.upper()
 
-        draw = ImageDraw.Draw(image)
+    draw = ImageDraw.Draw(image)
 
-        if line_a:
-            font, fontsize, padding = size_text(line_a, image.size[0], 1)
-            draw_text(padding, 8, line_a, draw, font)
+    if line_a:
+        font, fontsize, padding = size_text(line_a, image.size[0], 1)
+        draw_text(padding, 8, line_a, draw, font)
 
-        if line_b:
-            font, fontsize, padding = size_text(line_b, image.size[0], 1)
-            draw_text(padding, image.size[1] - 16 - fontsize, line_b, draw, font)
+    if line_b:
+        font, fontsize, padding = size_text(line_b, image.size[0], 1)
+        draw_text(padding, image.size[1] - 16 - fontsize, line_b, draw, font)
 
-        return image
+    return image
 
 
 def bufferize_image(meme_img, img_type, size=None):

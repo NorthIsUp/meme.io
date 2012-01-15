@@ -19,7 +19,7 @@ from template import THREAD
 from const import IMG_CONTENT_TYPES
 
 ## stats
-from greplin import scales
+# from greplin import scales
 # from greplin.scales import meter
 # from helpers import view, render_html
 
@@ -44,12 +44,12 @@ app.url_map.converters['re'] = RegexConverter
 
 cache = SimpleCache()
 
-STATS = scales.collection('/web',
+# STATS = scales.collection('/web',
     # meter.MeterStat('hits'),
-    scales.IntStat('requests'),
-    scales.PmfStat('latency'),
-    scales.IntDictStat('byPath'),
-    )
+    # scales.IntStat('requests'),
+    # scales.PmfStat('latency'),
+    # scales.IntDictStat('byPath'),
+    # )
 
 
 def build_image_response(f, length, img_type):
@@ -73,29 +73,29 @@ def front_page():
 @app.route(SITE_ROOT + "/<name>.<re(r'(?i)(png|jp[e]?g|gif)'):ext>")
 def serve_meme_blank(name, ext):
     # STATS.hits.mark()
-    with STATS.latency.time():
-        better_name = libmeme.fuzzy_meme(name)
+    # with STATS.latency.time():
+    better_name = libmeme.fuzzy_meme(name)
 
-        # should you redirect?
-        if better_name != name or ext != IMG_DEXT:
-            new_url = "/memeer/{n}.{e}".format(n=better_name, e=IMG_DEXT)
-            LOG.info("redirecting to: ", new_url)
-            return redirect(new_url)
+    # should you redirect?
+    if better_name != name or ext != IMG_DEXT:
+        new_url = "/memeer/{n}.{e}".format(n=better_name, e=IMG_DEXT)
+        LOG.info("redirecting to: ", new_url)
+        return redirect(new_url)
 
-        size = request.args.get("size", "")
-        better_name_size = better_name + size
+    size = request.args.get("size", "")
+    better_name_size = better_name + size
 
-        resp = cache.get(better_name_size)
+    resp = cache.get(better_name_size)
 
-        if resp:
-            return resp
-
-        meme_img = libmeme.meme_image(better_name, "", "")
-        f, length = libmeme.bufferize_image(meme_img, ext, size)
-        resp = build_image_response(f, length, ext)
-
-        cache.set(better_name_size, resp, timeout=5 * 60)
+    if resp:
         return resp
+
+    meme_img = libmeme.meme_image(better_name, "", "")
+    f, length = libmeme.bufferize_image(meme_img, ext, size)
+    resp = build_image_response(f, length, ext)
+
+    cache.set(better_name_size, resp, timeout=5 * 60)
+    return resp
 
 
 @app.route(SITE_ROOT + "/<name>/<line_a>/<line_b>.<re(r'(?i)(png|jp[e]?g|gif)'):ext>")
