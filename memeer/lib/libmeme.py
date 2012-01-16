@@ -1,5 +1,6 @@
 import gevent.monkey
 gevent.monkey.patch_all()
+import gevent
 
 # debug
 from pprint import pformat
@@ -66,15 +67,24 @@ class FontMap(dict):
 IMPACT = FontMap()
 
 
+def _populate_item(f, meme_map):
+    name = f.basename()[:-len(f.ext)]
+    LOG.info("loading meme %s", name)
+    meme_map[name] = {
+        'path': f,
+        'image': Image.open(f)
+        }
+
+
 def populate_map(meme_path):
     memes = path(meme_path)
+    meme_openers = []
+
     for f in memes.files('*.jpeg'):
-        name = f.basename()[:-5]
-        MEME_MAP[name] = {
-            'path': f,
-            #TODO: make this async
-            'image': Image.open(f)
-            }
+        pi = gevent.Greenlet.spawn(_populate_item, f, MEME_MAP)
+        meme_openers.append(pi)
+
+    gevent.joinall(meme_openers)
     LOG.debug(pformat(MEME_MAP))
 
 

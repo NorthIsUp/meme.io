@@ -52,6 +52,7 @@ if 'REDIS_TO_GO' in os.environ:
     app.config['CACHE_TYPE'] = "redis"
     app.config['CACHE_REDIS_HOST'] = url.hostname
     app.config['CACHE_REDIS_PORT'] = url.port
+    app.config['CACHE_REDIS_PASSWORD'] = url.password
     # from werkzeug.contrib.cache import RedisCache
     # cache = RedisCache(host=url.hostname, port=url.port)
 else:
@@ -83,13 +84,14 @@ def build_image_response(f, length, img_type):
 
 
 @app.route(SITE_ROOT + "/")
+@cache.cached(timeout=600)
 def front_page():
     d = {'meme_map': libmeme.MEME_MAP, 'SITE_ROOT': SITE_ROOT}
     return render_template("memeer.html", **d)
 
 
-@cache.cached
 @app.route(SITE_ROOT + "/<name>.<re(r'(?i)(png|jp[e]?g|gif)'):ext>")
+@cache.cached(timeout=600)
 def serve_meme_blank(name, ext):
     # STATS.hits.mark()
     # with STATS.latency.time():
