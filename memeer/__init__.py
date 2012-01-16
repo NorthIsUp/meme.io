@@ -14,4 +14,4 @@ def configure_raven(app):
         except Exception, e:
             print "Unexpected error:", e
             traceback.print_exc()
-sentry = configure_raven(application)
+# sentry = configure_raven(application)
