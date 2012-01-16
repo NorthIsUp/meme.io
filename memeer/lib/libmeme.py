@@ -88,9 +88,10 @@ def populate_map(meme_path):
     LOG.debug(pformat(MEME_MAP))
 
 
-def size_text(txt, size, img_fraction=1):
+def size_text(txt, width, height, img_fraction=1):
     #TODO adam: care about height?
-    img_size = img_fraction * size - 16
+    img_width = img_fraction * width - 16
+    img_height = .35 * height - 16
 
     # with STATS.size_text.time():
     breaker = 0
@@ -101,12 +102,15 @@ def size_text(txt, size, img_fraction=1):
     while True:
         mid = (lo + hi) // 2
 
-        current = IMPACT[mid].getsize(txt)[0]
-        next = IMPACT[mid + 1].getsize(txt)[0]
+        current_width = IMPACT[mid].getsize(txt)[0]
+        next_width = IMPACT[mid + 1].getsize(txt)[0]
 
-        if current <= img_size and next >= img_size:
+        current_height = IMPACT[mid].getsize(txt)[1]
+        next_height = IMPACT[mid + 1].getsize(txt)[1]
+
+        if (current_width <= img_width and next_width >= img_width) or (current_height <= img_height and next_height >= img_height):
             break
-        elif current < img_size:
+        elif current_width < img_width and current_height < img_height:
             lo = mid + 1
         else:
             hi = mid - 1
@@ -118,7 +122,7 @@ def size_text(txt, size, img_fraction=1):
     # optionally de-increment to be sure it is less than criteria
     fontsize = mid - 1
     font = IMPACT[fontsize]
-    extra = size - font.getsize(txt)[0]
+    extra = width - font.getsize(txt)[0]
     padding = extra / 2
     return (font, fontsize, padding)
 
@@ -158,11 +162,11 @@ def meme_image(full_name, line_a, line_b, blank=False):
     draw = ImageDraw.Draw(image)
 
     if line_a:
-        font, fontsize, padding = size_text(line_a, image.size[0], 1)
+        font, fontsize, padding = size_text(line_a, image.size[0], image.size[1], 1)
         draw_text(padding, 8, line_a, draw, font)
 
     if line_b:
-        font, fontsize, padding = size_text(line_b, image.size[0], 1)
+        font, fontsize, padding = size_text(line_b, image.size[0], image.size[1], 1)
         draw_text(padding, image.size[1] - 16 - fontsize, line_b, draw, font)
 
     return image
