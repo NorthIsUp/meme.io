@@ -1,7 +1,7 @@
 from memeer import app as application
 
 
-def configure_raven(app):
+def configure_heroku(app):
     import os
     import traceback
     if 'SENTRY_DSN' in os.environ:
@@ -14,4 +14,12 @@ def configure_raven(app):
         except Exception, e:
             print "Unexpected error:", e
             traceback.print_exc()
-# sentry = configure_raven(application)
+
+        if 'MEMCACHE_SERVERS' in os.environ:
+            mc = dict(
+            servers=[os.environ.get('MEMCACHE_SERVERS')],
+            username=os.environ.get('MEMCACHE_USERNAME'),
+            password=os.environ.get('MEMCACHE_PASSWORD'),
+            binary=True)
+
+sentry = configure_heroku(application)

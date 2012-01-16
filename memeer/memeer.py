@@ -1,5 +1,4 @@
 import os
-import sys
 from urllib import quote
 from logging import getLogger
 
@@ -15,8 +14,17 @@ from flask import make_response
 from flask import render_template
 from flask import request
 
-from werkzeug.contrib.cache import SimpleCache
 from paver.path import path
+
+if 'REDIS_TO_GO' in os.environ:
+    import urlparse
+    urlparse.uses_netloc.append('redis')
+    url = urlparse.urlparse(os.environ['REDIS_TO_GO'])
+    from werkzeug.contrib.cache import RedisCache
+    cache = RedisCache(host=url.hostname, port=url.port)
+else:
+    from werkzeug.contrib.cache import SimpleCache
+    cache = SimpleCache()
 
 ## application
 from converters import RegexConverter
@@ -44,7 +52,6 @@ Q = Queue()
 app = Flask(__name__, static_folder=__file_path + "/static", static_path=SITE_ROOT + "/static")
 app.url_map.converters['re'] = RegexConverter
 
-cache = SimpleCache()
 
 # STATS = scales.collection('/web',
     # meter.MeterStat('hits'),
