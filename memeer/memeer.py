@@ -1,9 +1,14 @@
+import os
+import sys
+from urllib import quote
+from logging import getLogger
+
 ## gevent
 import gevent.monkey
 gevent.monkey.patch_all()
 from gevent.queue import Queue
 
-## make wsgi easier
+## Web
 from flask import Flask
 from flask import redirect
 from flask import make_response
@@ -11,6 +16,7 @@ from flask import render_template
 from flask import request
 
 from werkzeug.contrib.cache import SimpleCache
+from paver.path import path
 
 ## application
 from converters import RegexConverter
@@ -23,10 +29,6 @@ from const import IMG_CONTENT_TYPES
 # from greplin.scales import meter
 # from helpers import view, render_html
 
-## utils
-from urllib import quote
-from paver.path import path
-from logging import getLogger
 
 ## TODO: Refactor this into config
 __file_path = path(__file__).dirname().abspath()

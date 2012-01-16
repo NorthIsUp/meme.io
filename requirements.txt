@@ -10,3 +10,5 @@ gunicorn==0.13.4
 -e git://github.com/Greplin/scales.git#egg=scales
 -e git://github.com/NorthIsUp/singletonmixin.git#egg=singletonmixin
 wsgiref==0.1.2
+raven2==1.0.0
+blinker
