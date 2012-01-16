@@ -14,17 +14,8 @@ from flask import make_response
 from flask import render_template
 from flask import request
 
+from flaskext.cache import Cache
 from paver.path import path
-
-if 'REDIS_TO_GO' in os.environ:
-    import urlparse
-    urlparse.uses_netloc.append('redis')
-    url = urlparse.urlparse(os.environ['REDIS_TO_GO'])
-    from werkzeug.contrib.cache import RedisCache
-    cache = RedisCache(host=url.hostname, port=url.port)
-else:
-    from werkzeug.contrib.cache import SimpleCache
-    cache = SimpleCache()
 
 ## application
 from converters import RegexConverter
@@ -52,6 +43,24 @@ Q = Queue()
 app = Flask(__name__, static_folder=__file_path + "/static", static_path=SITE_ROOT + "/static")
 app.url_map.converters['re'] = RegexConverter
 
+if 'REDIS_TO_GO' in os.environ:
+    import urlparse
+
+    urlparse.uses_netloc.append('redis')
+    url = urlparse.urlparse(os.environ['REDIS_TO_GO'])
+    app.config.from_envvar('REDIS_TO_GO')
+    app.config['CACHE_TYPE'] = "redis"
+    app.config['CACHE_REDIS_HOST'] = url.hostname
+    app.config['CACHE_REDIS_PORT'] = url.port
+    # from werkzeug.contrib.cache import RedisCache
+    # cache = RedisCache(host=url.hostname, port=url.port)
+else:
+    app.config['CACHE_TYPE'] = "simple"
+    # from werkzeug.contrib.cache import SimpleCache
+    # cache = SimpleCache()
+
+app.config['CACHE_DEFAULT_TIMEOUT'] = 500
+cache = Cache(app)
 
 # STATS = scales.collection('/web',
     # meter.MeterStat('hits'),
@@ -79,6 +88,7 @@ def front_page():
     return render_template("memeer.html", **d)
 
 
+@cache.cached
 @app.route(SITE_ROOT + "/<name>.<re(r'(?i)(png|jp[e]?g|gif)'):ext>")
 def serve_meme_blank(name, ext):
     # STATS.hits.mark()
