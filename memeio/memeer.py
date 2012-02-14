@@ -84,6 +84,11 @@ def build_image_response(f, length, img_type):
     return resp
 
 
+@app.after_request
+def tracking(*args, **kwargs):
+    track_page_view(request)
+
+
 @cache.cached(timeout=600)
 @app.route(SITE_ROOT + "/")
 def front_page():
@@ -122,8 +127,6 @@ def serve_meme_blank(name, ext):
 
 @app.route(SITE_ROOT + "/<name>/<line_a>/<line_b>.<re(r'(?i)(png|jp[e]?g|gif)'):ext>")
 def serve_meme_image(name, line_a, line_b, ext):
-    track_page_view(request)
-
     better_name = libmeme.fuzzy_meme(name)
 
     # should you redirect?
