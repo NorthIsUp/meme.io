@@ -12,5 +12,6 @@ gunicorn==0.13.4
 wsgiref==0.1.2
 raven2==1.0.0
 blinker
+httplib2
 redis
 Flask-Cache

@@ -22,6 +22,7 @@ from converters import RegexConverter
 from lib import libmeme
 from template import THREAD
 from const import IMG_CONTENT_TYPES
+from lib.ga import track_page_view
 
 ## stats
 # from greplin import scales
@@ -121,6 +122,8 @@ def serve_meme_blank(name, ext):
 
 @app.route(SITE_ROOT + "/<name>/<line_a>/<line_b>.<re(r'(?i)(png|jp[e]?g|gif)'):ext>")
 def serve_meme_image(name, line_a, line_b, ext):
+    track_page_view(request)
+
     better_name = libmeme.fuzzy_meme(name)
 
     # should you redirect?
