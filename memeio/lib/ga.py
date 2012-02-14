@@ -213,6 +213,7 @@ def track_page_view(request):
             "&utmvid=", visitor_id,
             "&utmip=", get_ip(environ.get("REMOTE_ADDR", ''))))
         logger.debug("utm_url: " + utm_url)
+        print("utm_url: " + utm_url)
         send_request_to_google_analytics(utm_url, environ)
 
     # // If the debug parameter is on, add a header to the response that contains
