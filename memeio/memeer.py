@@ -6,7 +6,6 @@ from logging import getLogger
 import gevent.monkey
 gevent.monkey.patch_all()
 from gevent.queue import Queue
-from gevent import Greenlet
 
 ## Web
 from flask import Flask
@@ -87,7 +86,7 @@ def build_image_response(f, length, img_type):
 
 @app.after_request
 def tracking(response, *args, **kwargs):
-    Greenlet.spawn(track_page_view, request)
+    track_page_view(request)
     return response
 
 
