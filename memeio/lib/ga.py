@@ -9,10 +9,12 @@ import httplib2
 import time
 from urllib import unquote, quote
 from Cookie import SimpleCookie, CookieError
-from . messaging import errMsg, dbgMsg
 import uuid
 
 from urlparse import parse_qsl
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 VERSION = "4.4sh"
 COOKIE_NAME = "__utmmobile"
@@ -47,7 +49,7 @@ GIF_DATA = reduce(lambda x, y: x + struct.pack('B', y),
 
 
 def get_ip(remote_address):
-    dbgMsg("remote_address: " + str(remote_address))
+    logger.debug("remote_address: " + str(remote_address))
     if not remote_address:
         return ""
     matches = re.match('^([^.]+\.[^.]+\.[^.]+\.).*', remote_address)
@@ -120,9 +122,9 @@ def send_request_to_google_analytics(utm_url, environ):
                                      headers={'User-Agent': environ.get('HTTP_USER_AGENT', 'Unknown'),
                                               'Accepts-Language:': environ.get("HTTP_ACCEPT_LANGUAGE", '')}
                                      )
-        dbgMsg("success")
-    except HttpLib2Error:
-        errMsg("fail: %s" % utm_url)
+        logger.debug("success")
+    except httplib2.HttpLib2Error:
+        logger.error("fail: %s" % utm_url)
         if environ['GET'].get('utmdebug'):
             raise Exception("Error opening: %s" % utm_url)
         else:
@@ -210,7 +212,7 @@ def track_page_view(request):
             "&utmcc=__utma%3D999.999.999.999.999.1%3B",
             "&utmvid=", visitor_id,
             "&utmip=", get_ip(environ.get("REMOTE_ADDR", ''))))
-        dbgMsg("utm_url: " + utm_url)
+        logger.debug("utm_url: " + utm_url)
         send_request_to_google_analytics(utm_url, environ)
 
     # // If the debug parameter is on, add a header to the response that contains
