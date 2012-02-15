@@ -6,6 +6,7 @@ from logging import getLogger
 import gevent.monkey
 gevent.monkey.patch_all()
 from gevent.queue import Queue
+from gevent import Greenlet
 
 ## Web
 from flask import Flask
@@ -23,6 +24,7 @@ from lib import libmeme
 from template import THREAD
 from const import IMG_CONTENT_TYPES
 from lib.ga import track_page_view
+from lib.ga import send_request_to_google_analytics
 
 ## stats
 # from greplin import scales
@@ -86,7 +88,12 @@ def build_image_response(f, length, img_type):
 
 @app.after_request
 def tracking(response, *args, **kwargs):
-    track_page_view(request)
+    utm_url = track_page_view(request)
+    environ = {
+        "HTTP_USER_AGENT": request.environ.get("HTTP_USER_AGENT", "unknown"),
+        "HTTP_ACCEPT_LANGUAGE": request.environ.get("HTTP_ACCEPT_LANGUAGE", "")
+        }
+    Greenlet.spawn(send_request_to_google_analytics, utm_url, environ)
     return response
 
 

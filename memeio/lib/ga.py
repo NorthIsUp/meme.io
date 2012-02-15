@@ -117,18 +117,17 @@ def send_request_to_google_analytics(utm_url, environ):
     """
     http = httplib2.Http()
     try:
-        resp, content = http.request(utm_url,
-                                     "GET",
-                                     headers={'User-Agent': environ.get('HTTP_USER_AGENT', 'Unknown'),
-                                              'Accepts-Language:': environ.get("HTTP_ACCEPT_LANGUAGE", '')}
-                                     )
+        resp, content = http.request(
+            utm_url,
+            "GET",
+            headers={
+                'User-Agent': environ.get('HTTP_USER_AGENT', 'Unknown'),
+                'Accepts-Language:': environ.get("HTTP_ACCEPT_LANGUAGE", '')
+                }
+         )
         logger.debug("success")
     except httplib2.HttpLib2Error:
         logger.error("fail: %s" % utm_url)
-        if environ['GET'].get('utmdebug'):
-            raise Exception("Error opening: %s" % utm_url)
-        else:
-            pass
 
 
 def parse_cookie(cookie):
@@ -214,16 +213,18 @@ def track_page_view(request):
             "&utmip=", get_ip(environ.get("REMOTE_ADDR", ''))))
         logger.debug("utm_url: " + utm_url)
         print("utm_url: " + utm_url)
-        send_request_to_google_analytics(utm_url, environ)
+        # send_request_to_google_analytics(utm_url, environ)
+    return utm_url
 
-    # // If the debug parameter is on, add a header to the response that contains
-    # // the url that was used to contact Google Analytics.
-    headers = [('Set-Cookie', str(cookie).split(': ')[1])]
-    if environ['GET'].get('utmdebug', False):
-        headers.append(('X-GA-MOBILE-URL', utm_url))
+    # # // If the debug parameter is on, add a header to the response that contains
+    # # // the url that was used to contact Google Analytics.
+    # headers = [('Set-Cookie', str(cookie).split(': ')[1])]
+    # if environ['GET'].get('utmdebug', False):
+    #     headers.append(('X-GA-MOBILE-URL', utm_url))
 
-    # Finally write the gif data to the response
-    response = write_gif_data()
-    response_headers = response['response_headers']
-    response_headers.extend(headers)
-    return response
+    # # Finally write the gif data to the response
+    # response = write_gif_data()
+    # response_headers = response['response_headers']
+    # response_headers.extend(headers)
+    # print response
+    # return response
