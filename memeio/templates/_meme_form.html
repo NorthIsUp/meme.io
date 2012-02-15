@@ -1,0 +1,18 @@
+<form class="form-horizontal">
+  <fieldset>
+    <legend>Create your meme image here!</legend>
+    <div class="control-group">
+      <label class="control-label">Meme text</label>
+      <div class="controls docs-input-sizes">
+        <input class="span8" type="text" placeholder="The top line">
+        <input class="span8" type="text" placeholder="The bottom line">
+      </div>
+      <label class="control-label">Meme image</label>
+      <div class="controls docs-input-sizes">
+        <select class="span6">
+          {% for meme_name, v in meme_map|dictsort %}<option>{{ meme_name }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+  </fieldset>
+</form>

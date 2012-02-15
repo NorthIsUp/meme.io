@@ -101,7 +101,7 @@ def tracking(response, *args, **kwargs):
 @app.route(SITE_ROOT + "/")
 def front_page():
     d = {'meme_map': libmeme.MEME_MAP, 'SITE_ROOT': SITE_ROOT}
-    return render_template("memeer.html", **d)
+    return render_template("boot.html", **d)
 
 
 @cache.cached(timeout=600)

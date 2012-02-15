@@ -1,4 +1,4 @@
-/* @override 
+/* @override
 	http://localhost:5000/static/style.css */
 
 div.memelist {
@@ -7,8 +7,8 @@ div.memelist {
 	border: 1px solid #333;
 	float: left;
 }
-	
-div.memeitem {
+
+li.memeitem {
 	height: 50px;
 	width: 50px;
 	float: left;

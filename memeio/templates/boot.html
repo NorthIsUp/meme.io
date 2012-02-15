@@ -1,0 +1,53 @@
+{% extends '_meme_base.html' %}
+{% block content %}
+
+{% include '_meme_nav.html' %}
+
+<div class="container-fluid">
+  <div class="row-fluid">
+    <div class="span3">
+      <div class="well sidebar-nav">
+        <ul class="nav nav-list">
+          <li class="nav-header">Sidebar</li>
+          <li class="active"><a href="#">Link</a></li>
+          <li><a href="#">Link</a></li>
+          {% for meme_name, v in meme_map|dictsort %}
+            <li class="memeitem">
+              <a href="{{SITE_ROOT}}/{{ meme_name }}.jpeg"><img class="memethumb" src="{{SITE_ROOT}}/{{ meme_name }}.jpeg?size=50x50" alt="{{ meme_name }}" onMouseOver='javascript:changeMemeHover("{{SITE_ROOT}}/{{ meme_name }}.jpeg")'/></a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div><!--/.well -->
+    </div><!--/span-->
+    <div class="span9">
+      <div class="hero-unit">
+        <h1>A wild meme approaches...</h1>
+
+        <div class="memeity">
+          <img id="memeityimg" src="{{SITE_ROOT}}/xthey/found a meme generator/make all the memes!.jpeg"/>
+        </div>
+
+        <p><a class="btn btn-primary btn-large">SHARE &raquo;</a></p>
+      </div>
+      <div class="row-fluid">
+        <div class="span8">
+          {% include '_meme_form.html' %}
+        </div>
+        <div class="span4">
+          <h2>About this meme</h2>
+          <p>Pull in info from know your meme</p>
+          <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+          <p><a class="btn" href="#">View details &raquo;</a></p>
+        </div><!--/span-->
+      </div>
+    </div><!--/span9-->
+  </div><!--/row-->
+
+  <hr>
+
+  <footer>
+    <p>&copy; adam 2012</p>
+  </footer>
+
+</div><!--/.fluid-container-->
+{% endblock %}
